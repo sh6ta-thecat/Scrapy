@@ -1,0 +1,58 @@
+body {
+    margin: 0;
+    font-family: Arial;
+}
+
+.container {
+    display: flex;
+    height: 100vh;
+}
+
+.sidebar {
+    width: 200px;
+    background: #1e1e1e;
+    color: white;
+    padding: 10px;
+}
+
+.block {
+    background: #333;
+    padding: 10px;
+    margin: 5px 0;
+    cursor: grab;
+}
+
+#canvas {
+    flex: 1;
+    position: relative;
+    background: #f0f0f0;
+}
+
+.node {
+    position: absolute;
+    background: white;
+    border: 2px solid #333;
+    padding: 10px;
+    cursor: move;
+}
+
+.right-panel {
+    width: 300px;
+    background: #fafafa;
+    padding: 10px;
+    overflow: auto;
+}
+
+#preview {
+    background: #fff;
+    border: 1px solid #ccc;
+    height: 150px;
+    overflow: auto;
+}
+
+pre {
+    background: #111;
+    color: #0f0;
+    padding: 10px;
+    font-size: 12px;
+}

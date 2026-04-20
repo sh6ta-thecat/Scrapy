@@ -1,17 +1,40 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Visual Scraper Builder</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="container">
-        <div class="sidebar">
-            <h3>Bloques</h3>
-            <div class="block" draggable="true" data-type="url"></div>
-        </div>
+
+<div class="container">
+
+    <!-- Panel izquierdo -->
+    <div class="sidebar">
+        <h3>Bloques</h3>
+
+        <div class="block" draggable="true" data-type="url">Cargar URL</div>
+        <div class="block" draggable="true" data-type="select">Seleccionar elemento</div>
+        <div class="block" draggable="true" data-type="text">Extraer texto</div>
+        <div class="block" draggable="true" data-type="attr">Extraer atributo</div>
+        <div class="block" draggable="true" data-type="output">Mostrar resultado</div>
+
     </div>
+
+    <!-- Canvas -->
+    <div id="canvas"></div>
+
+    <!-- Panel derecho -->
+    <div class="right-panel">
+        <h3>Preview</h3>
+        <div id="preview"></div>
+
+        <h3>Código generado</h3>
+        <pre id="code"></pre>
+    </div>
+
+</div>
+
+<script src="app.js"></script>
 </body>
 </html>

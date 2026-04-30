@@ -1,140 +1,90 @@
 let canvas = document.getElementById("canvas");
+let svg = document.getElementById("connections");
 
 let blocks = [];
 let connections = [];
-
 let idCounter = 0;
+let selected = null;
 
-// DRAG desde sidebar
-document.querySelectorAll(".block").forEach(block => {
-    block.addEventListener("dragstart", e => {
-        e.dataTransfer.setData("type", block.dataset.type);
-    });
+document.querySelectorAll(".block").forEach(el => {
+    el.draggable = true;
+    el.ondragstart = e => e.dataTransfer.setData("type", el.dataset.type);
 });
 
-// DROP en canvas
-canvas.addEventListener("dragover", e => e.preventDefault());
+canvas.ondragover = e => e.preventDefault();
 
-canvas.addEventListener("drop", e => {
-    let type = e.dataTransfer.getData("type");
-
-    createNode(type, e.offsetX, e.offsetY);
-});
+canvas.ondrop = e => {
+    createNode(e.dataTransfer.getData("type"), e.offsetX, e.offsetY);
+};
 
 function createNode(type, x, y) {
-    let id = "node_" + idCounter++;
+    let id = "n" + idCounter++;
 
     let node = document.createElement("div");
     node.className = "node";
     node.style.left = x + "px";
     node.style.top = y + "px";
+
     node.innerHTML = `
-        <strong>${type}</strong><br>
-        <input placeholder="config" />
+        <b>${type}</b>
+        <input placeholder="config">
     `;
 
     canvas.appendChild(node);
 
+    blocks.push({ id, type, config: "" });
+
+    node.querySelector("input").oninput = e => {
+        blocks.find(b => b.id === id).config = e.target.value;
+    };
+
+    node.onclick = () => connectNode(id);
+
     makeDraggable(node);
-
-    blocks.push({
-        id,
-        type,
-        config: ""
-    });
-
-    node.dataset.id = id;
-
-    node.addEventListener("click", () => {
-        selectNode(id);
-    });
 }
 
-// DRAG interno
-function makeDraggable(el) {
-    let offsetX, offsetY;
-
-    el.addEventListener("mousedown", e => {
-        offsetX = e.offsetX;
-        offsetY = e.offsetY;
-
-        function move(e) {
-            el.style.left = (e.pageX - canvas.offsetLeft - offsetX) + "px";
-            el.style.top = (e.pageY - canvas.offsetTop - offsetY) + "px";
-        }
-
-        function up() {
-            document.removeEventListener("mousemove", move);
-            document.removeEventListener("mouseup", up);
-        }
-
-        document.addEventListener("mousemove", move);
-        document.addEventListener("mouseup", up);
-    });
-}
-
-// Selección y conexión simple
-let selected = null;
-
-function selectNode(id) {
+function connectNode(id) {
     if (!selected) {
         selected = id;
     } else {
         connections.push({ from: selected, to: id });
         selected = null;
-        updateCode();
+        drawConnections();
     }
 }
 
-// GENERAR CÓDIGO
-function updateCode() {
-    let code = "<?php\n";
+function drawConnections() {
+    svg.innerHTML = "";
 
-    connections.forEach((conn, i) => {
-        let from = blocks.find(b => b.id === conn.from);
+    connections.forEach(c => {
+        let a = document.querySelector(`[data-id="${c.from}"]`);
+        let b = document.querySelector(`[data-id="${c.to}"]`);
+        if (!a || !b) return;
 
-        code += "// Paso " + (i+1) + ": " + from.type + "\n";
+        let line = document.createElementNS("http://www.w3.org/2000/svg", "line");
 
-        if (from.type === "url") {
-            code += "$html = file_get_contents('URL_AQUI');\n";
-        }
+        line.setAttribute("x1", a.offsetLeft + 90);
+        line.setAttribute("y1", a.offsetTop + 20);
+        line.setAttribute("x2", b.offsetLeft + 90);
+        line.setAttribute("y2", b.offsetTop + 20);
 
-        if (from.type === "select") {
-            code += "// Seleccionar elemento\n";
-        }
+        line.setAttribute("stroke", "white");
 
-        if (from.type === "text") {
-            code += "// Extraer texto\n";
-        }
-
-        if (from.type === "attr") {
-            code += "// Extraer atributo\n";
-        }
-
-        if (from.type === "output") {
-            code += "echo $resultado;\n";
-        }
-
-        code += "\n";
+        svg.appendChild(line);
     });
-
-    document.getElementById("code").textContent = code;
 }
 
-// EJECUTAR (preview)
+/* RUN */
 function runFlow() {
+
+    let ordered = topologicalSort(blocks, connections);
+
     fetch("api.php", {
         method: "POST",
-        body: JSON.stringify({
-            blocks,
-            connections
-        })
+        body: JSON.stringify({ blocks, connections, ordered })
     })
     .then(r => r.json())
-    .then(data => {
-        document.getElementById("preview").innerText = data.result;
+    .then(d => {
+        document.getElementById("preview").innerText = JSON.stringify(d.result, null, 2);
     });
 }
-
-// Auto ejecutar cada 2s
-setInterval(runFlow, 2000);
